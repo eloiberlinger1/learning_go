@@ -1,7 +1,8 @@
 package products
 
 import (
-	"encoding/json"
+	"ecom-local/internal/json"
+	"log"
 	"net/http"
 )
 
@@ -19,8 +20,17 @@ func (h *handler) ListProducts(w http.ResponseWriter, r *http.Request) {
 	// call service
 	// return json to using api.go functions in order to genreate http repsonse
 
-	products := []any{"Hello", "Woorld", 5}
+	err := h.service.ListProducts(r.Context())
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(products)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	products := struct {
+		Products []string `json:"products"`
+	}{}
+
+	json.Write(w, http.StatusOK, products)
 }
