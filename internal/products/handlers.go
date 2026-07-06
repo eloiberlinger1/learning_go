@@ -17,20 +17,13 @@ func NewHandler(service Service) *handler {
 }
 
 func (h *handler) ListProducts(w http.ResponseWriter, r *http.Request) {
-	// call service
-	// return json to using api.go functions in order to genreate http repsonse
-
-	err := h.service.ListProducts(r.Context())
+	products, err := h.service.ListProducts(r.Context())
 
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	products := struct {
-		Products []string `json:"products"`
-	}{}
 
 	json.Write(w, http.StatusOK, products)
 }

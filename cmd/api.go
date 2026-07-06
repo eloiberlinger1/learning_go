@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"time"
 
+	repo "ecom-local/internal/adapters/postgresql/sqlc"
 	"ecom-local/internal/products"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5"
 	slogchi "github.com/samber/slog-chi"
 )
 
@@ -25,8 +27,7 @@ type dbConfig struct {
 type application struct {
 	config config
 	// logger
-	// db driver
-
+	db *pgx.Conn
 }
 
 func (app *application) mount() http.Handler {
@@ -48,7 +49,7 @@ func (app *application) mount() http.Handler {
 		w.Write([]byte("All good"))
 	})
 
-	productsService := products.NewService()
+	productsService := products.NewService(repo.New(app.db))
 	productsHandler := products.NewHandler(productsService)
 
 	r.Get("/products", productsHandler.ListProducts)

@@ -35,6 +35,7 @@ func main() {
 
 	app := application{
 		config: cfg,
+		db:     conn,
 	}
 
 	h := app.mount()
