@@ -1,30 +1,32 @@
 package main
 
 import (
+	"log"
+	"log/slog"
 	"net/http"
 	"time"
-	"log"
+
+	"ecom-local/internal/products"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	slogchi "github.com/samber/slog-chi"
 )
 
 type config struct {
 	addr string
-	db dbConfig
-
-
+	db   dbConfig
 }
 
 type dbConfig struct {
 	dsn string
-
 }
 
 type application struct {
 	config config
 	// logger
 	// db driver
-	
+
 }
 
 func (app *application) mount() http.Handler {
@@ -34,7 +36,7 @@ func (app *application) mount() http.Handler {
 	// A good base middleware stack
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
+	r.Use(slogchi.New(slog.Default()))
 	r.Use(middleware.Recoverer)
 
 	// Set a timeout value on the request context (ctx), that will signal
@@ -46,15 +48,18 @@ func (app *application) mount() http.Handler {
 		w.Write([]byte("All good"))
 	})
 
+	productsHandler := products.NewHandler(nil)
+	r.Get("/products", productsHandler.ListProducts)
+
 	return r
 }
 
-func (app *application) run(h http.Handler) error{
+func (app *application) run(h http.Handler) error {
 	srv := &http.Server{
-		Addr: app.config.addr,
-		Handler: h,
+		Addr:         app.config.addr,
+		Handler:      h,
 		WriteTimeout: time.Second * 10,
-		IdleTimeout: time.Minute,
+		IdleTimeout:  time.Minute,
 	}
 
 	log.Printf("Server has started at addr %s", app.config.addr)
