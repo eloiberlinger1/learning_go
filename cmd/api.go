@@ -7,6 +7,7 @@ import (
 	"time"
 
 	repo "ecom-local/internal/adapters/postgresql/sqlc"
+	"ecom-local/internal/orders"
 	"ecom-local/internal/products"
 
 	"github.com/go-chi/chi/v5"
@@ -54,6 +55,9 @@ func (app *application) mount() http.Handler {
 
 	r.Get("/products", productsHandler.ListProducts)
 	r.Get("/product/{id}", productsHandler.ListProductById)
+
+	ordersHandler := orders.NewHandler(nil)
+	r.Post("/orders", ordersHandler.CreateOrder)
 
 	return r
 }
