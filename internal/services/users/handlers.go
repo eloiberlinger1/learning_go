@@ -4,12 +4,19 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"ecom-local/internal/auth"
+
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Handler struct {
 	store *Store
+}
+
+type LoginResponse struct {
+	Token string `json:"token"`
+	User  *User  `json:"user"`
 }
 
 func (h *Handler) RegisterRoutes(router chi.Router) {
@@ -54,9 +61,20 @@ func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token, err := auth.GenerateToken(user.ID, user.Email)
+	if err != nil {
+		http.Error(w, "Erreur lors de la génération du jeton d'accès", http.StatusInternalServerError)
+		return
+	}
+
+	response := LoginResponse{
+		Token: token,
+		User:  user,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(response)
 
 }
 

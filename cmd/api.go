@@ -62,7 +62,10 @@ func (app *application) mount() http.Handler {
 	r.Get("/product/{id}", productsHandler.ListProductById)
 
 	ordersHandler := orders.NewHandler(nil)
-	r.Post("/orders", ordersHandler.CreateOrder)
+	r.Group(func(r chi.Router) {
+		r.Use(customMiddleware.AuthMiddleware)
+		r.Post("/orders", ordersHandler.CreateOrder)
+	})
 
 	userStore := users.NewStore(app.db)
 	userHandler := users.NewHandler(userStore)
