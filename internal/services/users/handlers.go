@@ -42,26 +42,22 @@ func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashedPassword, err := HashPassword(payload.Password)
-	if err != nil {
-		http.Error(w, "Email ou mot de passe incorrect", http.StatusUnauthorized)
-		return
-	}
-
 	user, err := h.store.GetUserByEmail(r.Context(), payload.Email)
 	if err != nil {
 		http.Error(w, "Email ou mot de passe incorrect", http.StatusUnauthorized)
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(hashedPassword))
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(payload.Password))
 	if err != nil {
 		http.Error(w, "Email ou mot de passe incorrect", http.StatusUnauthorized)
 		return
 	}
 
-	// User loged in what to do then ?
-	return
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
+
 }
 
 func (h *Handler) HandleRegister(w http.ResponseWriter, r *http.Request) {

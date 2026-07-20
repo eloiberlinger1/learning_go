@@ -7,6 +7,7 @@ import (
 	"time"
 
 	repo "ecom-local/internal/adapters/postgresql/sqlc"
+	customMiddleware "ecom-local/internal/middleware"
 	"ecom-local/internal/services/orders"
 	"ecom-local/internal/services/products"
 	"ecom-local/internal/services/users"
@@ -46,6 +47,9 @@ func (app *application) mount() http.Handler {
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
+
+	// Rate limiting middleware
+	r.Use(customMiddleware.RateLimiter)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("All good"))

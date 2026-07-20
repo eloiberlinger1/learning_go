@@ -42,8 +42,8 @@ func (s *Store) GetUserByEmail(ctx context.Context, email string) (*User, error)
 		ID:           dbUser.ID,
 		Email:        dbUser.Email,
 		PasswordHash: dbUser.PasswordHash,
-		FirstName:    dbUser.FirstName.String,
-		LastName:     dbUser.LastName.String,
+		FirstName:    dbUser.FirstName,
+		LastName:     dbUser.LastName,
 		CreatedAt:    dbUser.CreatedAt.Time,
 	}, nil
 }
