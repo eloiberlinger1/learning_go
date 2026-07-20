@@ -7,8 +7,9 @@ import (
 	"time"
 
 	repo "ecom-local/internal/adapters/postgresql/sqlc"
-	"ecom-local/internal/orders"
-	"ecom-local/internal/products"
+	"ecom-local/internal/services/orders"
+	"ecom-local/internal/services/products"
+	"ecom-local/internal/services/users"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -58,6 +59,10 @@ func (app *application) mount() http.Handler {
 
 	ordersHandler := orders.NewHandler(nil)
 	r.Post("/orders", ordersHandler.CreateOrder)
+
+	userStore := users.NewStore(app.db)
+	userHandler := users.NewHandler(userStore)
+	userHandler.RegisterRoutes(r)
 
 	return r
 }
