@@ -37,7 +37,7 @@ type User struct {
 	ID           int64              `json:"id"`
 	Email        string             `json:"email"`
 	PasswordHash string             `json:"password_hash"`
-	FirstName    pgtype.Text        `json:"first_name"`
-	LastName     pgtype.Text        `json:"last_name"`
+	FirstName    string             `json:"first_name"`
+	LastName     string             `json:"last_name"`
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 }
