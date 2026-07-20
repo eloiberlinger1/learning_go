@@ -7,7 +7,140 @@ package repo
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const createOrder = `-- name: CreateOrder :one
+INSERT INTO orders ("userId", "total", "status", "address")
+VALUES ($1, $2, $3, $4)
+RETURNING id, "userId", total, status, address, "createdAt"
+`
+
+type CreateOrderParams struct {
+	UserId  int32          `json:"userId"`
+	Total   pgtype.Numeric `json:"total"`
+	Status  string         `json:"status"`
+	Address string         `json:"address"`
+}
+
+func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error) {
+	row := q.db.QueryRow(ctx, createOrder,
+		arg.UserId,
+		arg.Total,
+		arg.Status,
+		arg.Address,
+	)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.UserId,
+		&i.Total,
+		&i.Status,
+		&i.Address,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const createOrderItem = `-- name: CreateOrderItem :one
+INSERT INTO order_items ("orderId", "productId", "quantity", "price")
+VALUES ($1, $2, $3, $4)
+RETURNING id, "orderId", "productId", quantity, price
+`
+
+type CreateOrderItemParams struct {
+	OrderId   int32          `json:"orderId"`
+	ProductId int32          `json:"productId"`
+	Quantity  int32          `json:"quantity"`
+	Price     pgtype.Numeric `json:"price"`
+}
+
+func (q *Queries) CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error) {
+	row := q.db.QueryRow(ctx, createOrderItem,
+		arg.OrderId,
+		arg.ProductId,
+		arg.Quantity,
+		arg.Price,
+	)
+	var i OrderItem
+	err := row.Scan(
+		&i.ID,
+		&i.OrderId,
+		&i.ProductId,
+		&i.Quantity,
+		&i.Price,
+	)
+	return i, err
+}
+
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (first_name, last_name, email, password_hash)
+VALUES ($1, $2, $3, $4)
+RETURNING id, email, password_hash, first_name, last_name, created_at
+`
+
+type CreateUserParams struct {
+	FirstName    pgtype.Text `json:"first_name"`
+	LastName     pgtype.Text `json:"last_name"`
+	Email        string      `json:"email"`
+	PasswordHash string      `json:"password_hash"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser,
+		arg.FirstName,
+		arg.LastName,
+		arg.Email,
+		arg.PasswordHash,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.FirstName,
+		&i.LastName,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, email, password_hash, first_name, last_name, created_at FROM users WHERE email = $1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.FirstName,
+		&i.LastName,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getUserByID = `-- name: GetUserByID :one
+SELECT id, email, password_hash, first_name, last_name, created_at FROM users WHERE id = $1
+`
+
+func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByID, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.FirstName,
+		&i.LastName,
+		&i.CreatedAt,
+	)
+	return i, err
+}
 
 const listProductById = `-- name: ListProductById :one
 SELECT id, name, price_in_cents, quantity, created_at FROM products WHERE id=$1
